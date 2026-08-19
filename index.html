@@ -24,26 +24,13 @@
     <header class="hero hero-focus">
       <p class="eyebrow">DeepSeek Harness</p>
       <h1>一键启动</h1>
-      <p class="hero-lead">复制命令到终端。本地环境 Agent 会多轮观察、诊断并自动修复，直到完成配置并打开 Web UI。</p>
+      <p class="hero-lead">复制一条命令即可。Windows 会从 Cloudflare 自动拉取引导脚本并下载临时运行环境，由本地 Agent 检测修复后启动；无需手动安装包或解压。</p>
     </header>
 
     <div id="placeholder-warning" class="callout warn" hidden>
       <strong>尚未写入真实 API Key。</strong>
       请编辑 <code>config/defaults.json</code> 后重新部署。
     </div>
-
-    <section class="card card-focus" style="margin-bottom: 1rem;">
-      <h2 style="margin-top:0;">Windows 下载即跑</h2>
-      <p>适合几乎裸机的 Windows：下载 zip → 解压 → 双击 <code>start.cmd</code>。包内自带临时 Node 与初始化 Agent；安装完成后可删除该文件夹。</p>
-      <div class="inline-actions">
-        <a class="btn primary" href="https://github.com/agents-group/dsh-onboarding/releases/download/portable-win-latest/dsh-onboarding-windows-portable.zip">下载便携包</a>
-        <a class="btn" href="https://github.com/agents-group/dsh-onboarding/blob/main/windows-portable/README.md" target="_blank" rel="noreferrer">说明</a>
-      </div>
-      <p class="hint" style="margin-top: 0.85rem;">
-        持久保留：<code>%LOCALAPPDATA%\dsh-onboarding\</code> 与 <code>%USERPROFILE%\.dsh\</code>。
-        临时可删：解压出来的便携目录（<code>cleanup.cmd</code>）。
-      </p>
-    </section>
 
     <!-- Primary focus: install command -->
     <section class="card card-focus" data-tabs>
@@ -53,6 +40,7 @@
       </div>
 
       <div class="panel active" data-panel="win">
+        <p class="fold-note" style="margin-top:0;">一条命令自动：从 Cloudflare 拉脚本 → 下载临时 Node（优先国内镜像）→ 环境 Agent 检测修复 → 写凭据并启动。无需手动解压。</p>
         <div class="cmd-block cmd-block-lg">
           <div class="cmd-head">
             <span class="label">PowerShell · 粘贴后回车</span>
@@ -63,6 +51,8 @@
         <p class="hint">
           若提示无法执行脚本，先运行
           <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>
+          · 可选离线 zip（备用）：
+          <a href="https://github.com/agents-group/dsh-onboarding/releases/download/portable-win-latest/dsh-onboarding-windows-portable.zip">GitHub 便携包</a>
         </p>
       </div>
 

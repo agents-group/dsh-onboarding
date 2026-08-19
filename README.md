@@ -9,12 +9,22 @@
 - 快速启动：https://dsh-onboarding.pages.dev/
 - 使用手册：https://dsh-onboarding.pages.dev/guide
 
-**Windows 下载即跑（便携包）**
+**Windows 一键（推荐，无需手动解压）**
 
-- 滚动发布包：https://github.com/agents-group/dsh-onboarding/releases/download/portable-win-latest/dsh-onboarding-windows-portable.zip  
-- 解压后双击 `start.cmd` → 本地临时 runtime 跑初始化 Agent → 写入本机持久 Node/凭据  
-- 成功后可双击 `cleanup.cmd` **删掉便携目录**；以后用 `%LOCALAPPDATA%\dsh-onboarding\start-dsh.cmd`  
-- 说明见 [`windows-portable/README.md`](./windows-portable/README.md)
+```powershell
+$env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap-win.ps1' | iex
+```
+
+流程：Cloudflare Pages 拉脚本 → 自动下载临时 Node（优先 npmmirror）→ 环境 Agent 检测/修复 → 持久化到 `%LOCALAPPDATA%\dsh-onboarding` + `%USERPROFILE%\.dsh` → 启动 Web UI → 清理临时目录。
+
+可选：若已把完整 zip 放到 Cloudflare R2，可先设：
+
+```powershell
+$env:DSH_ONBOARD_WIN_PACKAGE_URL='https://<your-r2-public>/dsh-onboarding-windows-portable.zip'
+```
+
+备用 GitHub zip（需手动解压）：  
+https://github.com/agents-group/dsh-onboarding/releases/download/portable-win-latest/dsh-onboarding-windows-portable.zip
 
 **备用（GitHub Pages）**
 
@@ -76,12 +86,12 @@ python -m http.server 4173
 
 ## 用户命令（Cloudflare Pages）
 
-打开 https://dsh-onboarding.pages.dev/ 复制即可；命令示例：
+打开 https://dsh-onboarding.pages.dev/ 复制即可。
 
-**Windows (PowerShell)**
+**Windows（自动下载临时环境，推荐）**
 
 ```powershell
-$env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap.ps1' | iex
+$env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap-win.ps1' | iex
 ```
 
 **macOS / Linux**
@@ -89,6 +99,15 @@ $env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.js
 ```bash
 curl -fsSL 'https://dsh-onboarding.pages.dev/scripts/bootstrap.sh' | bash -s -- --config-url 'https://dsh-onboarding.pages.dev/config/defaults.json'
 ```
+
+### Cloudflare R2 托管完整 zip（可选）
+
+当前站点 Token 若仅有 Pages 权限，大 zip 需使用带 **R2 Edit** 的 Token：
+
+1. 构建：`./scripts/build-windows-portable.ps1`  
+2. 上传：`./scripts/upload-win-package-r2.ps1 -ZipPath ./dist/dsh-onboarding-windows-portable.zip`  
+3. 在 CF 控制台为 bucket 打开 r2.dev 公网访问  
+4. 用户侧设置 `DSH_ONBOARD_WIN_PACKAGE_URL` 后仍走同一条 `bootstrap-win.ps1` 命令  
 
 页面会根据当前访问 URL 自动生成可复制命令。
 

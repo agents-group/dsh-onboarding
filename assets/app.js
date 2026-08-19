@@ -46,11 +46,12 @@
     const configUrl = `${base}/config/defaults.json`;
     const shUrl = `${base}/scripts/bootstrap.sh`;
     const psUrl = `${base}/scripts/bootstrap.ps1`;
+    const winBootUrl = `${base}/scripts/bootstrap-win.ps1`;
 
-    // Prefer env/config-url so defaults.json remains the single place to rotate keys after deploy.
-    const win = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${psUrl}' | iex`;
-    const winCheckDownload = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; $u='${psUrl}'; irm $u -OutFile bootstrap.ps1; .\\bootstrap.ps1 -CheckOnly`;
-    const winNoLaunch = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; $u='${psUrl}'; irm $u -OutFile bootstrap.ps1; .\\bootstrap.ps1 -NoLaunch`;
+    // Windows: one-liner downloads temp runtime via Cloudflare site + mirrors, then runs install agent.
+    const win = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${winBootUrl}' | iex`;
+    const winCheckDownload = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${winBootUrl}' -OutFile bootstrap-win.ps1; .\\bootstrap-win.ps1 -NoLaunch`;
+    const winNoLaunch = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${winBootUrl}' -OutFile bootstrap-win.ps1; .\\bootstrap-win.ps1 -NoLaunch`;
 
     const unix = `curl -fsSL '${shUrl}' | bash -s -- --config-url '${configUrl}'`;
     const unixCheck = `curl -fsSL '${shUrl}' | bash -s -- --config-url '${configUrl}' --check-only`;
