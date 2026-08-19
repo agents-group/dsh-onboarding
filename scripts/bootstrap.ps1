@@ -411,14 +411,15 @@ function Find-PortableNodeHomes {
 
 function Repair-NodePath {
   $homes = Find-PortableNodeHomes
-  foreach ($home in $homes) {
-    Add-UserPathEntry -Dir $home
-    $env:Path = "{0};{1}" -f $home, $env:Path
+  # NOTE: never foreach ($home in ...) — $home is the same as read-only automatic $HOME.
+  foreach ($nodeHomeDir in $homes) {
+    Add-UserPathEntry -Dir $nodeHomeDir
+    $env:Path = "{0};{1}" -f $nodeHomeDir, $env:Path
   }
   Update-SessionPath
-  foreach ($home in $homes) {
-    if ($env:Path -notlike ("*{0}*" -f $home)) {
-      $env:Path = "{0};{1}" -f $home, $env:Path
+  foreach ($nodeHomeDir in $homes) {
+    if ($env:Path -notlike ("*{0}*" -f $nodeHomeDir)) {
+      $env:Path = "{0};{1}" -f $nodeHomeDir, $env:Path
     }
   }
   return (Get-NodeVersionObject)

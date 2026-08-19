@@ -70,7 +70,7 @@ function Invoke-Download {
   } finally {
     $wc.Dispose()
   }
-  if (-not (Test-Path -LiteralPath $OutFile) -or ((Get-Item -LiteralPath $OutFile).Length -lt 1024)) {
+  if (-not (Test-Path -LiteralPath $OutFile) -or ((Get-Item -LiteralPath $OutFile).Length -lt 32)) {
     throw "Download failed or file too small: $Url"
   }
 }
@@ -162,27 +162,28 @@ function Promote-DurableNode {
   $exe = Join-Path $SourceHome 'node.exe'
   $ver = (& $exe -v).ToString().Trim().TrimStart('v')
   $root = Join-Path $env:LOCALAPPDATA 'dsh-onboarding\node'
-  $home = Join-Path $root ("v{0}" -f $ver)
-  $destExe = Join-Path $home 'node.exe'
+  # NOTE: never use $home — PowerShell aliases it to read-only $HOME.
+  $nodeHomeDir = Join-Path $root ("v{0}" -f $ver)
+  $destExe = Join-Path $nodeHomeDir 'node.exe'
   if (Test-NodeExe $destExe) {
-    Write-Boot ("Durable Node exists: {0}" -f $home) 'ok'
+    Write-Boot ("Durable Node exists: {0}" -f $nodeHomeDir) 'ok'
   } else {
-    Write-Boot ("Promote Node -> {0}" -f $home) 'title'
+    Write-Boot ("Promote Node -> {0}" -f $nodeHomeDir) 'title'
     New-Item -ItemType Directory -Path $root -Force | Out-Null
-    if (Test-Path -LiteralPath $home) { Remove-Item -LiteralPath $home -Recurse -Force }
-    Copy-Item -LiteralPath $SourceHome -Destination $home -Recurse -Force
-    if (-not (Test-NodeExe (Join-Path $home 'node.exe'))) { throw 'Durable promote failed' }
+    if (Test-Path -LiteralPath $nodeHomeDir) { Remove-Item -LiteralPath $nodeHomeDir -Recurse -Force }
+    Copy-Item -LiteralPath $SourceHome -Destination $nodeHomeDir -Recurse -Force
+    if (-not (Test-NodeExe (Join-Path $nodeHomeDir 'node.exe'))) { throw 'Durable promote failed' }
     Write-Boot 'Durable Node promoted' 'ok'
   }
 
   $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
   if ([string]::IsNullOrWhiteSpace($userPath)) {
-    [Environment]::SetEnvironmentVariable('Path', $home, 'User')
-  } elseif ($userPath -notlike ("*{0}*" -f $home)) {
-    [Environment]::SetEnvironmentVariable('Path', ($home + ';' + $userPath), 'User')
+    [Environment]::SetEnvironmentVariable('Path', $nodeHomeDir, 'User')
+  } elseif ($userPath -notlike ("*{0}*" -f $nodeHomeDir)) {
+    [Environment]::SetEnvironmentVariable('Path', ($nodeHomeDir + ';' + $userPath), 'User')
   }
-  $env:Path = "{0};{1}" -f $home, $env:Path
-  return $home
+  $env:Path = "{0};{1}" -f $nodeHomeDir, $env:Path
+  return $nodeHomeDir
 }
 
 function Write-DurableLauncher {
