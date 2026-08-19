@@ -2,24 +2,29 @@
 
 面向团队分发的 **DeepSeek Harness（dsh）** 上手站点：快速启动页 + 使用手册 + 跨平台一键脚本。
 
-## 在线访问
+## 快速启动地址
 
-推荐使用 **Cloudflare Pages**（国内访问通常更稳定）。推送到 `main` 后，GitHub Actions 会自动同步部署。
+**推荐（Cloudflare Pages）**
 
-| 页面 | Cloudflare（推荐） | GitHub Pages（备用） |
-|------|--------------------|----------------------|
-| 快速启动 | https://dsh-onboarding.pages.dev/ | https://dpsagent.github.io/dsh-onboarding/ |
-| 使用手册 | https://dsh-onboarding.pages.dev/guide.html | https://dpsagent.github.io/dsh-onboarding/guide.html |
+- 快速启动：https://dsh-onboarding.pages.dev/
+- 使用手册：https://dsh-onboarding.pages.dev/guide
 
-CI 工作流：`.github/workflows/deploy-cloudflare-pages.yml`  
-所需 Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`
+**备用（GitHub Pages）**
 
-用户复制一条命令即可：
+- 快速启动：https://dpsagent.github.io/dsh-onboarding/
+- 使用手册：https://dpsagent.github.io/dsh-onboarding/guide.html
+
+> 日常请优先把 Cloudflare 地址发给用户；GitHub Pages 仅作备用。推送到 `main` 后，Actions 会自动同步到 Cloudflare。
+
+用户打开快速启动页，复制一条命令即可：
 
 1. 检测本机 Node.js / npm / npx  
 2. 尝试安装缺失依赖  
 3. 写入预置 `DEEPSEEK_API_KEY` 与 `DEEPSEEK_BASE_URL`  
 4. 执行 `npx -y @deepseek-ai/dsh web`
+
+CI：`.github/workflows/deploy-cloudflare-pages.yml`  
+Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`
 
 ## 目录
 
