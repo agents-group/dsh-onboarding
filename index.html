@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepSeek Harness 快速启动</title>
+  <meta name="description" content="一键检测本机环境、安装依赖、配置 API Key/端点并启动 DeepSeek Harness (dsh)。" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <div class="shell shell-focus">
+    <nav class="nav" aria-label="主导航">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">D</span>
+        <span>DSH Onboarding</span>
+      </a>
+      <div class="nav-links">
+        <a class="active" href="./index.html">快速启动</a>
+        <a href="./guide.html">使用手册</a>
+        <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noreferrer">官方仓库</a>
+      </div>
+    </nav>
+
+    <header class="hero hero-focus">
+      <p class="eyebrow">DeepSeek Harness</p>
+      <h1>一键启动</h1>
+      <p class="hero-lead">复制命令到终端，自动完成环境检测、依赖安装、凭据配置并打开 Web UI。</p>
+    </header>
+
+    <div id="placeholder-warning" class="callout warn" hidden>
+      <strong>尚未写入真实 API Key。</strong>
+      请编辑 <code>config/defaults.json</code> 后重新部署。
+    </div>
+
+    <!-- Primary focus: install command -->
+    <section class="card card-focus" data-tabs>
+      <div class="tabs tabs-lg" role="tablist" aria-label="操作系统">
+        <button type="button" class="tab active" data-tab="win">Windows</button>
+        <button type="button" class="tab" data-tab="unix">macOS / Linux</button>
+      </div>
+
+      <div class="panel active" data-panel="win">
+        <div class="cmd-block cmd-block-lg">
+          <div class="cmd-head">
+            <span class="label">PowerShell · 粘贴后回车</span>
+            <button type="button" class="btn primary" data-copy-target="cmd-windows">复制命令</button>
+          </div>
+          <pre><code id="cmd-windows"># 加载中…</code></pre>
+        </div>
+        <p class="hint">
+          若提示无法执行脚本，先运行
+          <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>
+        </p>
+      </div>
+
+      <div class="panel" data-panel="unix">
+        <div class="cmd-block cmd-block-lg">
+          <div class="cmd-head">
+            <span class="label">bash / zsh · 粘贴后回车</span>
+            <button type="button" class="btn primary" data-copy-target="cmd-unix">复制命令</button>
+          </div>
+          <pre><code id="cmd-unix"># 加载中…</code></pre>
+        </div>
+        <p class="hint">仅在需要通过系统包管理器安装 Node.js 时可能请求 <code>sudo</code>。</p>
+      </div>
+
+      <p class="after-cmd">
+        启动成功后浏览器打开
+        <strong>http://127.0.0.1:<span id="cfg-port">3080</span></strong>
+        · <a href="./guide.html#after-start">启动后做什么</a>
+      </p>
+    </section>
+
+    <!-- Collapsed secondary info -->
+    <div class="fold-stack">
+      <details class="fold">
+        <summary>命令会做什么</summary>
+        <div class="fold-body">
+          <ol class="steps">
+            <li>
+              <div>
+                <strong>检测运行环境</strong><br />
+                <span>检查 Node.js（<code id="cfg-node">^22.19 || &gt;=24</code>）与 npm / npx。</span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>补齐依赖</strong><br />
+                <span>Windows：winget / choco；macOS：Homebrew；Linux：NodeSource / dnf。</span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>写入默认配置</strong><br />
+                <span>Key → <code>~/.dsh/.credentials.yaml</code>；端点 → <code>~/.dsh/.env</code>。</span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>启动 Web UI</strong><br />
+                <span>执行 <code>npx -y <span id="cfg-package">@deepseek-ai/dsh</span> web</code>。</span>
+              </div>
+            </li>
+          </ol>
+          <div class="kv">
+            <div class="kv-row">
+              <div class="k">预置端点</div>
+              <div class="v" id="cfg-baseurl">—</div>
+            </div>
+            <div class="kv-row">
+              <div class="k">预置 API Key</div>
+              <div class="v" id="cfg-apikey">—</div>
+            </div>
+            <div class="kv-row">
+              <div class="k">产品</div>
+              <div class="v muted" id="cfg-product">DeepSeek Harness</div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>环境要求</summary>
+        <div class="fold-body">
+          <ul class="plain-list">
+            <li>Node.js <code>^22.19.0</code> 或 <code>&gt;=24.0.0</code>（脚本可尝试自动安装）</li>
+            <li>可访问 npm registry（首次 <code>npx</code> 拉包）</li>
+            <li>可访问预置模型端点</li>
+            <li>Windows 10+（PowerShell 5.1+）/ macOS / 主流 Linux</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>其他命令（仅检查 / 只配置 / 手动）</summary>
+        <div class="fold-body fold-body-stack">
+          <div data-tabs>
+            <h3 class="fold-sub">仅检查环境</h3>
+            <div class="tabs">
+              <button type="button" class="tab active" data-tab="w">Windows</button>
+              <button type="button" class="tab" data-tab="u">macOS / Linux</button>
+            </div>
+            <div class="panel active" data-panel="w">
+              <div class="cmd-block">
+                <div class="cmd-head">
+                  <span class="label">check-only</span>
+                  <button type="button" class="btn" data-copy-target="cmd-windows-check">复制</button>
+                </div>
+                <pre><code id="cmd-windows-check"></code></pre>
+              </div>
+            </div>
+            <div class="panel" data-panel="u">
+              <div class="cmd-block">
+                <div class="cmd-head">
+                  <span class="label">check-only</span>
+                  <button type="button" class="btn" data-copy-target="cmd-unix-check">复制</button>
+                </div>
+                <pre><code id="cmd-unix-check"></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div data-tabs>
+            <h3 class="fold-sub">只配置不启动</h3>
+            <div class="tabs">
+              <button type="button" class="tab active" data-tab="w2">Windows</button>
+              <button type="button" class="tab" data-tab="u2">macOS / Linux</button>
+            </div>
+            <div class="panel active" data-panel="w2">
+              <div class="cmd-block">
+                <div class="cmd-head">
+                  <span class="label">no-launch</span>
+                  <button type="button" class="btn" data-copy-target="cmd-windows-nolaunch">复制</button>
+                </div>
+                <pre><code id="cmd-windows-nolaunch"></code></pre>
+              </div>
+            </div>
+            <div class="panel" data-panel="u2">
+              <div class="cmd-block">
+                <div class="cmd-head">
+                  <span class="label">no-launch</span>
+                  <button type="button" class="btn" data-copy-target="cmd-unix-nolaunch">复制</button>
+                </div>
+                <pre><code id="cmd-unix-nolaunch"></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="fold-sub">手动步骤</h3>
+            <div class="cmd-block">
+              <div class="cmd-head">
+                <span class="label">manual</span>
+                <button type="button" class="btn" data-copy-target="cmd-manual">复制</button>
+              </div>
+              <pre><code id="cmd-manual"></code></pre>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>站点地址（命令 URL 不对时再改）</summary>
+        <div class="fold-body">
+          <p class="fold-note">默认使用当前页面地址生成命令。通过 <code>file://</code> 打开或反向代理改路径时，在此填写部署后的站点根 URL。</p>
+          <form id="site-base-form" class="site-url-form">
+            <label for="site-base-input">站点根 URL</label>
+            <input id="site-base-input" type="url" placeholder="https://your-host/dsh-onboarding" autocomplete="off" />
+            <div class="inline-actions">
+              <button type="submit" class="btn primary">应用并刷新命令</button>
+              <button type="button" class="btn" id="site-base-reset">恢复自动检测</button>
+            </div>
+          </form>
+        </div>
+      </details>
+    </div>
+
+    <footer class="footer">
+      <span>需要说明？见 <a href="./guide.html">使用手册</a></span>
+      <span><a href="./config/defaults.json">defaults.json</a></span>
+    </footer>
+  </div>
+  <script src="./assets/app.js"></script>
+</body>
+</html>

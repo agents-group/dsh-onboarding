@@ -1,0 +1,17 @@
+{
+  "productName": "DeepSeek Harness",
+  "cliPackage": "@deepseek-ai/dsh",
+  "launchArgs": ["web"],
+  "defaultPort": 3080,
+  "nodeEngines": "^22.19.0 || >=24.0.0",
+  "minNodeMajor": 22,
+  "minNodeMinorFor22": 19,
+  "apiKey": "sk-PGHkWh0C8rV1FMuQ2D4jXAtYBnSRILcz07zpQ7NR16RMYfbJ",
+  "baseURL": "https://newapi.dapeng.uno/v1",
+  "credentialsHome": ".dsh",
+  "docs": {
+    "official": "https://github.com/deepseek-ai/deepseek-harness",
+    "webGuide": "https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/index.md"
+  },
+  "notes": "把 apiKey / baseURL 改成你实际下发的值后重新部署站点。脚本会把密钥写入用户本机 ~/.dsh/.credentials.yaml。"
+}

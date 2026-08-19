@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepSeek Harness 使用手册</title>
+  <meta name="description" content="DeepSeek Harness 快速上手与运维手册：环境要求、一键安装、凭据位置、Web UI 使用与排障。" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav" aria-label="主导航">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">D</span>
+        <span>DSH Onboarding</span>
+      </a>
+      <div class="nav-links">
+        <a href="./index.html">快速启动</a>
+        <a class="active" href="./guide.html">使用手册</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noreferrer">官方仓库</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <h1>使用手册</h1>
+      <p>
+        本手册覆盖从零启动 DeepSeek Harness（dsh）到日常使用与排障。
+        一键命令见 <a href="./index.html">快速启动</a>；产品细节以
+        <a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noreferrer">官方文档</a> 为准。
+      </p>
+    </header>
+
+    <div class="guide-layout">
+      <aside class="card soft guide-side">
+        <h3>目录</h3>
+        <nav class="toc">
+          <a href="#overview">1. 产品概述</a>
+          <a href="#requirements">2. 环境要求</a>
+          <a href="#install">3. 安装与启动</a>
+          <a href="#credentials">4. 凭据与端点</a>
+          <a href="#after-start">5. 启动后使用</a>
+          <a href="#ops">6. 日常操作</a>
+          <a href="#deploy">7. 部署本站点</a>
+          <a href="#faq">8. FAQ / 排障</a>
+        </nav>
+      </aside>
+
+      <main class="card guide-main">
+        <h2 id="overview">1. 产品概述</h2>
+        <p>
+          <strong>DeepSeek Harness（dsh）</strong> 是 DeepSeek 开源的 Agent Harness。
+          最常见的上手方式是启动本地 Web UI，在浏览器里选择工作区、配置模型并对话。
+        </p>
+        <p>
+          本 onboarding 站点额外提供「团队预置版」能力：把统一的 API Key 与 API 端点写到用户本机
+          <code>~/.dsh</code>，减少每人手工配置。
+        </p>
+
+        <h2 id="requirements">2. 环境要求</h2>
+        <ul>
+          <li><strong>Node.js</strong>：<code>^22.19.0</code> 或 <code>&gt;=24.0.0</code>（官方 engines；Node 23 不在范围内）</li>
+          <li><strong>npm / npx</strong>：随 Node 安装</li>
+          <li><strong>网络</strong>：首次 <code>npx</code> 需能访问 npm registry；运行时需能访问你配置的模型端点</li>
+          <li><strong>操作系统</strong>：Windows 10+（PowerShell 5.1+）、macOS、主流 Linux</li>
+        </ul>
+        <div class="callout">
+          一键脚本会尝试自动安装 Node，但在企业锁定环境 / 无管理员权限时可能失败，此时请按 IT 流程安装 Node 后重跑命令。
+        </div>
+
+        <h2 id="install">3. 安装与启动</h2>
+        <h3>3.1 推荐：一键脚本</h3>
+        <p>打开 <a href="./index.html">快速启动</a>，复制对应系统命令。</p>
+        <ul>
+          <li><strong>Windows</strong>：<code>irm &lt;site&gt;/scripts/bootstrap.ps1 | iex</code></li>
+          <li><strong>macOS / Linux</strong>：<code>curl -fsSL &lt;site&gt;/scripts/bootstrap.sh | bash</code></li>
+        </ul>
+        <p>脚本流程：检测 Node →（可选）安装 Node → 写入凭据 → <code>npx -y @deepseek-ai/dsh web</code>。</p>
+
+        <h3>3.2 仅检查 / 只配置</h3>
+        <pre><code># macOS / Linux
+curl -fsSL &lt;site&gt;/scripts/bootstrap.sh | bash -s -- --check-only
+curl -fsSL &lt;site&gt;/scripts/bootstrap.sh | bash -s -- --no-launch
+
+# Windows（先下载再带参数）
+irm &lt;site&gt;/scripts/bootstrap.ps1 -OutFile bootstrap.ps1
+.\bootstrap.ps1 -CheckOnly
+.\bootstrap.ps1 -NoLaunch</code></pre>
+
+        <h3>3.3 官方最小命令（自备 Key）</h3>
+        <pre><code>npx @deepseek-ai/dsh web</code></pre>
+        <p>然后在 Web UI「设置 → 模型」中填写 API Key。若使用自定义网关，还需配置 Base URL。</p>
+
+        <h2 id="credentials">4. 凭据与端点</h2>
+        <p>一键脚本默认写入（可用环境变量 <code>DSH_HOME</code> 改根目录）：</p>
+        <ul>
+          <li><code>~/.dsh/.credentials.yaml</code> → <code>DEEPSEEK_API_KEY: …</code></li>
+          <li><code>~/.dsh/.env</code> → <code>DEEPSEEK_BASE_URL=…</code>（同时会写入 API Key 作为后备层）</li>
+        </ul>
+        <p>解析优先级（概念上）：进程环境变量 &gt; <code>.credentials.yaml</code> &gt; 用户/项目 <code>.env</code>。详情见官方 credentials 文档。</p>
+
+        <h3>4.1 管理员如何改预置值</h3>
+        <ol>
+          <li>编辑本站点 <code>config/defaults.json</code> 的 <code>apiKey</code> / <code>baseURL</code></li>
+          <li>同步修改 <code>scripts/bootstrap.ps1</code> 与 <code>scripts/bootstrap.sh</code> 顶部的内置默认值（在无法拉取 JSON 时兜底）</li>
+          <li>重新部署静态文件</li>
+        </ol>
+        <div class="callout warn">
+          <strong>安全提示：</strong>把真实 Key 放进公开站点意味着任何打开页面或下载脚本的人都能拿到它。
+          只适合可轮换、可限流、可吊销的团队共享 Key；生产密钥请改用每人自助申请或短时下发。
+        </div>
+
+        <h3>4.2 用户覆盖预置值</h3>
+        <pre><code># 环境变量
+export DSH_ONBOARD_API_KEY='sk-xxx'
+export DSH_ONBOARD_BASE_URL='https://your-endpoint/v1'
+curl -fsSL &lt;site&gt;/scripts/bootstrap.sh | bash
+
+# 或参数
+./bootstrap.sh --api-key 'sk-xxx' --base-url 'https://your-endpoint/v1'
+.\bootstrap.ps1 -ApiKey 'sk-xxx' -BaseURL 'https://your-endpoint/v1'</code></pre>
+
+        <h2 id="after-start">5. 启动后使用</h2>
+        <ol>
+          <li>终端出现监听地址后，浏览器打开 <code>http://127.0.0.1:3080</code>（以实际输出为准）。</li>
+          <li>在 Web UI 中<strong>添加并选中工作区</strong>（项目目录）。未选中工作区时输入框不可用。</li>
+          <li>打开 <strong>设置 → 模型</strong> 确认 DeepSeek 路由可用。预置 Key 已写入时通常无需再填。</li>
+          <li>新建会话，发送任务，例如：「总结这个仓库的主要包结构」。</li>
+        </ol>
+        <p>
+          更完整的 UI 说明见官方
+          <a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/index.zh.md" target="_blank" rel="noreferrer">Web UI 指南</a>
+          与
+          <a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/providers.zh.md" target="_blank" rel="noreferrer">模型配置指南</a>。
+        </p>
+
+        <h2 id="ops">6. 日常操作</h2>
+        <h3>再次启动</h3>
+        <pre><code>npx -y @deepseek-ai/dsh web</code></pre>
+        <p>凭据已在 <code>~/.dsh</code> 时不必重复跑 onboarding 脚本。</p>
+
+        <h3>更换 Key / 端点</h3>
+        <ul>
+          <li>重跑一键脚本（会更新同名键），或</li>
+          <li>直接编辑 <code>~/.dsh/.credentials.yaml</code> / <code>~/.dsh/.env</code>，或</li>
+          <li>在 Web UI 设置页写入新密钥</li>
+        </ul>
+
+        <h3>清理</h3>
+        <pre><code># 仅删除凭据（保留其他 dsh 数据）
+rm ~/.dsh/.credentials.yaml   # Windows: 删除 %USERPROFILE%\.dsh\.credentials.yaml
+
+# 删除整个 dsh 用户目录（会话、设置等一并消失）
+rm -rf ~/.dsh</code></pre>
+
+        <h2 id="deploy">7. 部署本站点</h2>
+        <p><code>dsh-onboarding/</code> 是纯静态资源，可部署到 Nginx、GitHub Pages、对象存储静态网站、内网文件服务等。</p>
+        <ol>
+          <li>填写 <code>config/defaults.json</code> 与两个 bootstrap 脚本中的 Key / 端点</li>
+          <li>将整个 <code>dsh-onboarding</code> 目录上传到 HTTPS 站点（推荐 HTTPS，便于剪贴板 API）</li>
+          <li>确保以下路径可直接访问：
+            <ul>
+              <li><code>/index.html</code></li>
+              <li><code>/config/defaults.json</code></li>
+              <li><code>/scripts/bootstrap.sh</code></li>
+              <li><code>/scripts/bootstrap.ps1</code></li>
+            </ul>
+          </li>
+          <li>给 <code>bootstrap.sh</code> 配正确的 <code>Content-Type</code>（<code>text/plain</code> 或 <code>application/x-sh</code> 均可）；避免被下载成错误编码</li>
+          <li>本地预览示例：</li>
+        </ol>
+        <pre><code>cd dsh-onboarding
+# Python
+python -m http.server 4173
+# 或 Node
+npx --yes serve -p 4173
+# 打开 http://127.0.0.1:4173</code></pre>
+
+        <h2 id="faq">8. FAQ / 排障</h2>
+        <h3>Q: 提示占位 API Key？</h3>
+        <p>管理员还没把 <code>sk-REPLACE_WITH_YOUR_KEY</code> 换成真实值。改 <code>defaults.json</code> 与脚本后重新部署。</p>
+
+        <h3>Q: Windows 报执行策略错误？</h3>
+        <pre><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></pre>
+
+        <h3>Q: 安装了 Node 仍提示找不到？</h3>
+        <p>当前终端 PATH 未刷新。关闭终端重开，或重新登录系统后再执行。</p>
+
+        <h3>Q: npx 很慢或失败？</h3>
+        <ul>
+          <li>检查是否能访问 npm registry；可配置企业镜像</li>
+          <li>尝试 <code>npm config get registry</code> 并按公司要求切换</li>
+          <li>使用 <code>npx -y @deepseek-ai/dsh web</code> 查看完整报错</li>
+        </ul>
+
+        <h3>Q: 浏览器打开了但无法对话？</h3>
+        <ul>
+          <li>是否已<strong>选择工作区</strong></li>
+          <li>模型设置里 Key 是否有效、端点是否可达</li>
+          <li>公司代理是否拦截 localhost 或模型域名</li>
+        </ul>
+
+        <h3>Q: 如何确认脚本写入成功？</h3>
+        <pre><code># macOS / Linux
+cat ~/.dsh/.credentials.yaml
+cat ~/.dsh/.env
+
+# Windows PowerShell
+Get-Content $HOME\.dsh\.credentials.yaml
+Get-Content $HOME\.dsh\.env</code></pre>
+
+        <h3>Q: 可以离线安装吗？</h3>
+        <p>
+          本方案依赖 <code>npx</code> 在线拉包。完全离线需要预先缓存 npm 包或改用内网 registry / 源码构建，不在当前一键脚本范围内。
+        </p>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <span>需要一键命令？回到 <a href="./index.html">快速启动</a></span>
+      <span>配置文件 <a href="./config/defaults.json">defaults.json</a></span>
+    </footer>
+  </div>
+  <script src="./assets/app.js"></script>
+</body>
+</html>
