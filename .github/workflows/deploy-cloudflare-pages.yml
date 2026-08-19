@@ -1,0 +1,40 @@
+name: Deploy Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Deploy static site to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Direct upload of this static repo root (no build step).
+          command: pages deploy . --project-name=dsh-onboarding --branch=main --commit-dirty=true
+
+      - name: Print site URL
+        run: |
+          echo "Production URL: https://dsh-onboarding.pages.dev/"
+          echo "Quick start:    https://dsh-onboarding.pages.dev/"
+          echo "Guide:          https://dsh-onboarding.pages.dev/guide.html"

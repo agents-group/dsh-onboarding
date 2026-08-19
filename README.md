@@ -2,14 +2,17 @@
 
 面向团队分发的 **DeepSeek Harness（dsh）** 上手站点：快速启动页 + 使用手册 + 跨平台一键脚本。
 
-## 在线访问（GitHub Pages）
+## 在线访问
 
-| 页面 | 地址 |
-|------|------|
-| 快速启动 | https://dpsagent.github.io/dsh-onboarding/ |
-| 使用手册 | https://dpsagent.github.io/dsh-onboarding/guide.html |
+推荐使用 **Cloudflare Pages**（国内访问通常更稳定）。推送到 `main` 后，GitHub Actions 会自动同步部署。
 
-仓库默认从 `main` 分支根目录发布 Pages；推送到 `main` 后站点会自动更新。
+| 页面 | Cloudflare（推荐） | GitHub Pages（备用） |
+|------|--------------------|----------------------|
+| 快速启动 | https://dsh-onboarding.pages.dev/ | https://dpsagent.github.io/dsh-onboarding/ |
+| 使用手册 | https://dsh-onboarding.pages.dev/guide.html | https://dpsagent.github.io/dsh-onboarding/guide.html |
+
+CI 工作流：`.github/workflows/deploy-cloudflare-pages.yml`  
+所需 Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`
 
 用户复制一条命令即可：
 
@@ -57,20 +60,20 @@ python -m http.server 4173
 # 浏览器打开 http://127.0.0.1:4173
 ```
 
-## 用户命令（Pages 已部署）
+## 用户命令（Cloudflare Pages）
 
-打开 https://dpsagent.github.io/dsh-onboarding/ 复制即可；命令示例：
+打开 https://dsh-onboarding.pages.dev/ 复制即可；命令示例：
 
 **Windows (PowerShell)**
 
 ```powershell
-$env:DSH_ONBOARD_CONFIG_URL='https://dpsagent.github.io/dsh-onboarding/config/defaults.json'; irm 'https://dpsagent.github.io/dsh-onboarding/scripts/bootstrap.ps1' | iex
+$env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap.ps1' | iex
 ```
 
 **macOS / Linux**
 
 ```bash
-curl -fsSL 'https://dpsagent.github.io/dsh-onboarding/scripts/bootstrap.sh' | bash -s -- --config-url 'https://dpsagent.github.io/dsh-onboarding/config/defaults.json'
+curl -fsSL 'https://dsh-onboarding.pages.dev/scripts/bootstrap.sh' | bash -s -- --config-url 'https://dsh-onboarding.pages.dev/config/defaults.json'
 ```
 
 页面会根据当前访问 URL 自动生成可复制命令。
