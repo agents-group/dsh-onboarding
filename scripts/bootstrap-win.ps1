@@ -360,8 +360,19 @@ try {
   }
   $runAgent = Join-Path $layoutScripts 'bootstrap.ps1'
 
-  & $runAgent -SkipNodeInstall -NoLaunch -MaxRounds 8
-  $agentCode = $LASTEXITCODE
+  # Nested scripts under %TEMP% are often blocked by ExecutionPolicy when invoked with "& file.ps1".
+  # Always spawn a child powershell with Bypass (does not change machine policy).
+  Write-Boot 'Run agent with ExecutionPolicy Bypass (child process)...'
+  $agentArgs = @(
+    '-NoProfile'
+    '-ExecutionPolicy', 'Bypass'
+    '-File', $runAgent
+    '-SkipNodeInstall'
+    '-NoLaunch'
+    '-MaxRounds', '8'
+  )
+  $agentProc = Start-Process -FilePath 'powershell.exe' -ArgumentList $agentArgs -Wait -PassThru -NoNewWindow
+  $agentCode = $agentProc.ExitCode
   if ($null -eq $agentCode) { $agentCode = 0 }
   if ($agentCode -ne 0) {
     Write-Boot ("Agent failed code={0}" -f $agentCode) 'err'
