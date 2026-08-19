@@ -24,7 +24,7 @@
     <header class="hero hero-focus">
       <p class="eyebrow">DeepSeek Harness</p>
       <h1>一键启动</h1>
-      <p class="hero-lead">复制命令到终端，自动完成环境检测、依赖安装、凭据配置并打开 Web UI。</p>
+      <p class="hero-lead">复制命令到终端。本地环境 Agent 会多轮观察、诊断并自动修复，直到完成配置并打开 Web UI。</p>
     </header>
 
     <div id="placeholder-warning" class="callout warn" hidden>
@@ -74,19 +74,20 @@
     <!-- Collapsed secondary info -->
     <div class="fold-stack">
       <details class="fold">
-        <summary>命令会做什么</summary>
+        <summary>命令会做什么（环境 Agent）</summary>
         <div class="fold-body">
+          <p class="fold-note">脚本是本地 playbook Agent（不是云端大模型）：多轮 <strong>观察 → 诊断 → 处置 → 复检</strong>，按机器现状选修复路径。</p>
           <ol class="steps">
             <li>
               <div>
-                <strong>检测运行环境</strong><br />
-                <span>检查 Node.js（<code id="cfg-node">^22.19 || &gt;=24</code>）与 npm / npx。</span>
+                <strong>观察</strong><br />
+                <span>采集 OS、Node（<code id="cfg-node">^22.19 || &gt;=24</code>）、npm/npx、已有便携安装、凭据文件等事实。</span>
               </div>
             </li>
             <li>
               <div>
-                <strong>补齐依赖</strong><br />
-                <span>Windows：winget / choco；macOS：Homebrew；Linux：NodeSource / dnf。</span>
+                <strong>诊断并自动修复</strong><br />
+                <span>缺 Node → 便携包/包管理器；PATH 坏了 → 修复；缺凭据 → 写入；同一修复失败则换策略或给出人工步骤。</span>
               </div>
             </li>
             <li>
@@ -98,7 +99,7 @@
             <li>
               <div>
                 <strong>启动 Web UI</strong><br />
-                <span>执行 <code>npx -y <span id="cfg-package">@deepseek-ai/dsh</span> web</code>。</span>
+                <span>环境就绪后执行 <code>npx -y <span id="cfg-package">@deepseek-ai/dsh</span> web</code>。</span>
               </div>
             </li>
           </ol>

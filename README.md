@@ -18,12 +18,12 @@
 > 代码仓库：https://github.com/agents-group/dsh-onboarding  
 > 组织共用 Secrets：https://github.com/organizations/agents-group/settings/secrets/actions
 
-用户打开快速启动页，复制一条命令即可：
+用户打开快速启动页，复制一条命令即可。脚本内是 **本地环境 Agent**（playbook，不是云端 LLM）：
 
-1. 检测本机 Node.js / npm / npx  
-2. 尝试安装缺失依赖  
+1. **观察**本机 OS / Node / npm / npx / 凭据等事实  
+2. **诊断**缺口并选择修复动作（多轮，失败会换策略或提示人工）  
 3. 写入预置 `DEEPSEEK_API_KEY` 与 `DEEPSEEK_BASE_URL`  
-4. 执行 `npx -y @deepseek-ai/dsh web`
+4. 环境就绪后执行 `npx -y @deepseek-ai/dsh web`
 
 CI：`.github/workflows/deploy-cloudflare-pages.yml`  
 组织 Secrets（`agents-group` 下所有仓库可共用）：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`
