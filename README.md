@@ -2,6 +2,15 @@
 
 面向团队分发的 **DeepSeek Harness（dsh）** 上手站点：快速启动页 + 使用手册 + 跨平台一键脚本。
 
+## 在线访问（GitHub Pages）
+
+| 页面 | 地址 |
+|------|------|
+| 快速启动 | https://dpsagent.github.io/dsh-onboarding/ |
+| 使用手册 | https://dpsagent.github.io/dsh-onboarding/guide.html |
+
+仓库默认从 `main` 分支根目录发布 Pages；推送到 `main` 后站点会自动更新。
+
 用户复制一条命令即可：
 
 1. 检测本机 Node.js / npm / npx  
@@ -12,11 +21,11 @@
 ## 目录
 
 ```
-dsh-onboarding/
+.
   index.html           # 快速启动
   guide.html           # 使用手册
   assets/              # 样式与前端逻辑
-  config/defaults.json # 预置 Key / 端点（部署前必改）
+  config/defaults.json # 预置 Key / 端点
   scripts/
     bootstrap.ps1      # Windows
     bootstrap.sh       # macOS / Linux
@@ -48,21 +57,23 @@ python -m http.server 4173
 # 浏览器打开 http://127.0.0.1:4173
 ```
 
-## 用户命令（部署后）
+## 用户命令（Pages 已部署）
+
+打开 https://dpsagent.github.io/dsh-onboarding/ 复制即可；命令示例：
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://<你的域名>/dsh-onboarding/scripts/bootstrap.ps1 | iex
+$env:DSH_ONBOARD_CONFIG_URL='https://dpsagent.github.io/dsh-onboarding/config/defaults.json'; irm 'https://dpsagent.github.io/dsh-onboarding/scripts/bootstrap.ps1' | iex
 ```
 
 **macOS / Linux**
 
 ```bash
-curl -fsSL https://<你的域名>/dsh-onboarding/scripts/bootstrap.sh | bash
+curl -fsSL 'https://dpsagent.github.io/dsh-onboarding/scripts/bootstrap.sh' | bash -s -- --config-url 'https://dpsagent.github.io/dsh-onboarding/config/defaults.json'
 ```
 
-页面会根据当前访问 URL 自动生成可复制命令。若通过 `file://` 打开，可在首页填写「站点根 URL」。
+页面会根据当前访问 URL 自动生成可复制命令。
 
 ## 凭据落盘位置
 
