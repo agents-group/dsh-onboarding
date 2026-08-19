@@ -1,4 +1,4 @@
-﻿# OS / editor
+# OS / editor
 .DS_Store
 Thumbs.db
 Desktop.ini
@@ -11,3 +11,6 @@ Desktop.ini
 *.log
 .cache/
 node_modules/
+dist/
+windows-portable/runtime/
+*.zip

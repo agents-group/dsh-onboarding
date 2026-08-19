@@ -9,12 +9,19 @@
 - 快速启动：https://dsh-onboarding.pages.dev/
 - 使用手册：https://dsh-onboarding.pages.dev/guide
 
+**Windows 下载即跑（便携包）**
+
+- 滚动发布包：https://github.com/agents-group/dsh-onboarding/releases/download/portable-win-latest/dsh-onboarding-windows-portable.zip  
+- 解压后双击 `start.cmd` → 本地临时 runtime 跑初始化 Agent → 写入本机持久 Node/凭据  
+- 成功后可双击 `cleanup.cmd` **删掉便携目录**；以后用 `%LOCALAPPDATA%\dsh-onboarding\start-dsh.cmd`  
+- 说明见 [`windows-portable/README.md`](./windows-portable/README.md)
+
 **备用（GitHub Pages）**
 
 - 快速启动：https://agents-group.github.io/dsh-onboarding/
 - 使用手册：https://agents-group.github.io/dsh-onboarding/guide.html
 
-> 日常请优先把 Cloudflare 地址发给用户；GitHub Pages 仅作备用。推送到 `main` 后，Actions 会自动同步到 Cloudflare。  
+> 日常请优先把 Cloudflare 地址发给用户；GitHub Pages 仅作备用。推送到 `main` 后，Actions 会自动同步到 Cloudflare，并构建 Windows 便携 zip。  
 > 代码仓库：https://github.com/agents-group/dsh-onboarding  
 > 组织共用 Secrets：https://github.com/organizations/agents-group/settings/secrets/actions
 

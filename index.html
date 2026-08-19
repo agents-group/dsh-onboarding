@@ -32,6 +32,19 @@
       请编辑 <code>config/defaults.json</code> 后重新部署。
     </div>
 
+    <section class="card card-focus" style="margin-bottom: 1rem;">
+      <h2 style="margin-top:0;">Windows 下载即跑</h2>
+      <p>适合几乎裸机的 Windows：下载 zip → 解压 → 双击 <code>start.cmd</code>。包内自带临时 Node 与初始化 Agent；安装完成后可删除该文件夹。</p>
+      <div class="inline-actions">
+        <a class="btn primary" href="https://github.com/agents-group/dsh-onboarding/releases/download/portable-win-latest/dsh-onboarding-windows-portable.zip">下载便携包</a>
+        <a class="btn" href="https://github.com/agents-group/dsh-onboarding/blob/main/windows-portable/README.md" target="_blank" rel="noreferrer">说明</a>
+      </div>
+      <p class="hint" style="margin-top: 0.85rem;">
+        持久保留：<code>%LOCALAPPDATA%\dsh-onboarding\</code> 与 <code>%USERPROFILE%\.dsh\</code>。
+        临时可删：解压出来的便携目录（<code>cleanup.cmd</code>）。
+      </p>
+    </section>
+
     <!-- Primary focus: install command -->
     <section class="card card-focus" data-tabs>
       <div class="tabs tabs-lg" role="tablist" aria-label="操作系统">

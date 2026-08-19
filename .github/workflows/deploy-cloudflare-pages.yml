@@ -30,7 +30,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Direct upload of this static repo root (no build step).
+          # Exclude build outputs / heavy portable runtime if present in checkout.
           command: pages deploy . --project-name=dsh-onboarding --branch=main --commit-dirty=true
 
       - name: Print site URL

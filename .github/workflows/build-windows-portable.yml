@@ -1,0 +1,64 @@
+name: Build Windows Portable
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'windows-portable/**'
+      - 'scripts/bootstrap.ps1'
+      - 'scripts/build-windows-portable.ps1'
+      - 'config/defaults.json'
+      - '.github/workflows/build-windows-portable.yml'
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build portable zip
+        shell: pwsh
+        run: |
+          ./scripts/build-windows-portable.ps1
+          Get-Item ./dist/dsh-onboarding-windows-portable.zip | Format-List FullName, Length
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-onboarding-windows-portable
+          path: dist/dsh-onboarding-windows-portable.zip
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release (when tagging/release)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/dsh-onboarding-windows-portable.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish rolling portable release
+        if: github.event_name != 'release' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG=portable-win-latest
+          FILE=dist/dsh-onboarding-windows-portable.zip
+          # Recreate rolling tag/release so "latest portable" URL stays stable.
+          gh release delete "$TAG" -y || true
+          git tag -f "$TAG"
+          git push -f origin "refs/tags/$TAG"
+          gh release create "$TAG" "$FILE" \
+            --title "Windows portable (rolling)" \
+            --notes "Download-and-run bootstrap package. Extract and double-click start.cmd. After success you may run cleanup.cmd to remove this temp folder." \
+            --latest=false
