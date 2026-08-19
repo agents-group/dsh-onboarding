@@ -604,7 +604,8 @@ function Get-Issues {
       }) | Out-Null
   }
 
-  return @($issues)
+  # Materialize Generic.List to object[] — `@($list)` can throw "Argument types do not match" on Windows PowerShell 5.1.
+  return @($issues.ToArray())
 }
 
 function Invoke-Fix {
