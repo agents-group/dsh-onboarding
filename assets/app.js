@@ -48,10 +48,17 @@
     const psUrl = `${base}/scripts/bootstrap.ps1`;
     const winBootUrl = `${base}/scripts/bootstrap-win.ps1`;
 
-    // Windows: one-liner downloads temp runtime via Cloudflare site + mirrors, then runs install agent.
-    const win = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${winBootUrl}' | iex`;
-    const winCheckDownload = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${winBootUrl}' -OutFile bootstrap-win.ps1; .\\bootstrap-win.ps1 -NoLaunch`;
-    const winNoLaunch = `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; irm '${winBootUrl}' -OutFile bootstrap-win.ps1; .\\bootstrap-win.ps1 -NoLaunch`;
+    // Windows: single paste — set CurrentUser policy then download temp runtime and run install agent.
+    const win =
+      `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force; `
+      + `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; `
+      + `irm '${winBootUrl}' | iex`;
+    const winCheckDownload =
+      `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force; `
+      + `$env:DSH_ONBOARD_CONFIG_URL='${configUrl}'; `
+      + `irm '${winBootUrl}' -OutFile bootstrap-win.ps1; `
+      + `.\\bootstrap-win.ps1 -NoLaunch`;
+    const winNoLaunch = winCheckDownload;
 
     const unix = `curl -fsSL '${shUrl}' | bash -s -- --config-url '${configUrl}'`;
     const unixCheck = `curl -fsSL '${shUrl}' | bash -s -- --config-url '${configUrl}' --check-only`;

@@ -12,10 +12,10 @@
 **Windows 一键（推荐，无需手动解压）**
 
 ```powershell
-$env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap-win.ps1' | iex
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force; $env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap-win.ps1' | iex
 ```
 
-流程：Cloudflare Pages 拉脚本 → 自动下载临时 Node（优先 npmmirror）→ 环境 Agent 检测/修复 → 持久化到 `%LOCALAPPDATA%\dsh-onboarding` + `%USERPROFILE%\.dsh` → 启动 Web UI → 清理临时目录。
+一条粘贴即可（含执行策略）。流程：Cloudflare Pages 拉脚本 → 自动下载临时 Node（优先 npmmirror）→ 环境 Agent 检测/修复 → 持久化到 `%LOCALAPPDATA%\dsh-onboarding` + `%USERPROFILE%\.dsh` → 启动 Web UI → 清理临时目录。
 
 可选：若已把完整 zip 放到 Cloudflare R2，可先设：
 
@@ -88,10 +88,10 @@ python -m http.server 4173
 
 打开 https://dsh-onboarding.pages.dev/ 复制即可。
 
-**Windows（自动下载临时环境，推荐）**
+**Windows（自动下载临时环境，推荐，单行）**
 
 ```powershell
-$env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap-win.ps1' | iex
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force; $env:DSH_ONBOARD_CONFIG_URL='https://dsh-onboarding.pages.dev/config/defaults.json'; irm 'https://dsh-onboarding.pages.dev/scripts/bootstrap-win.ps1' | iex
 ```
 
 **macOS / Linux**
