@@ -101,29 +101,194 @@ function Update-SessionPath {
   $env:Path = "{0};{1}" -f $machine, $user
 }
 
+function Add-UserPathEntry {
+  param([string]$Dir)
+  if ([string]::IsNullOrWhiteSpace($Dir) -or -not (Test-Path -LiteralPath $Dir)) { return }
+  $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+  if ([string]::IsNullOrWhiteSpace($userPath)) {
+    [Environment]::SetEnvironmentVariable('Path', $Dir, 'User')
+  } else {
+    $parts = @($userPath -split ';' | Where-Object { $_ -and $_.Trim() })
+    $exists = $false
+    foreach ($p in $parts) {
+      if ([string]::Equals($p, $Dir, [StringComparison]::OrdinalIgnoreCase)) { $exists = $true; break }
+    }
+    if (-not $exists) {
+      [Environment]::SetEnvironmentVariable('Path', ($Dir + ';' + $userPath), 'User')
+    }
+  }
+  if ($env:Path -notlike ("*{0}*" -f $Dir)) {
+    $env:Path = "{0};{1}" -f $Dir, $env:Path
+  }
+}
+
+function Get-PreferredNodeWinAsset {
+  # Prefer current Node 22.x win zip (matches dsh engines ^22.19 || >=24), no admin required.
+  $fallback = [pscustomobject]@{
+    version = '22.22.0'
+    arch = $(if ([Environment]::Is64BitOperatingSystem) { 'x64' } else { 'x86' })
+  }
+  try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $idx = Invoke-RestMethod -Uri 'https://nodejs.org/dist/index.json' -TimeoutSec 30
+    $pick = $idx | Where-Object {
+      $_.version -match '^v22\.' -and
+      [int]($_.version.TrimStart('v').Split('.')[1]) -ge 19 -and
+      $_.files -contains $(if ([Environment]::Is64BitOperatingSystem) { 'win-x64-zip' } else { 'win-x86-zip' })
+    } | Select-Object -First 1
+    if ($null -ne $pick) {
+      return [pscustomobject]@{
+        version = $pick.version.TrimStart('v')
+        arch = $(if ([Environment]::Is64BitOperatingSystem) { 'x64' } else { 'x86' })
+      }
+    }
+  } catch {
+    Write-Step ("Could not query nodejs.org index, using fallback v{0}: {1}" -f $fallback.version, $_.Exception.Message) 'warn'
+  }
+  return $fallback
+}
+
+function Install-NodePortableZip {
+  param([int]$TimeoutSec = 180)
+
+  $asset = Get-PreferredNodeWinAsset
+  $ver = $asset.version
+  $arch = $asset.arch
+  $zipName = "node-v{0}-win-{1}.zip" -f $ver, $arch
+  $url = "https://nodejs.org/dist/v{0}/{1}" -f $ver, $zipName
+  $work = Join-Path $env:LOCALAPPDATA 'dsh-onboarding\node'
+  $zipPath = Join-Path $env:TEMP $zipName
+  $extractRoot = Join-Path $work 'extract'
+  $nodeHome = Join-Path $work ("v{0}" -f $ver)
+
+  Write-Step ("Downloading portable Node.js v{0} ({1}) — no admin/UAC..." -f $ver, $arch)
+  Write-Step ("URL: {0}" -f $url)
+  try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $wc = New-Object System.Net.WebClient
+    $wc.DownloadFile($url, $zipPath)
+  } catch {
+    Write-Step ("Portable download failed: {0}" -f $_.Exception.Message) 'warn'
+    return $false
+  }
+
+  if (-not (Test-Path -LiteralPath $zipPath) -or ((Get-Item -LiteralPath $zipPath).Length -lt 1MB)) {
+    Write-Step 'Downloaded Node zip looks invalid' 'warn'
+    return $false
+  }
+
+  Write-Step 'Extracting portable Node.js...'
+  try {
+    if (Test-Path -LiteralPath $extractRoot) {
+      Remove-Item -LiteralPath $extractRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    New-Item -ItemType Directory -Path $extractRoot -Force | Out-Null
+    if (Test-Path -LiteralPath $nodeHome) {
+      Remove-Item -LiteralPath $nodeHome -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractRoot)
+    $inner = Get-ChildItem -LiteralPath $extractRoot -Directory | Select-Object -First 1
+    if ($null -eq $inner) { throw 'zip contained no directory' }
+    Move-Item -LiteralPath $inner.FullName -Destination $nodeHome
+  } catch {
+    Write-Step ("Extract failed: {0}" -f $_.Exception.Message) 'warn'
+    return $false
+  }
+
+  $nodeExe = Join-Path $nodeHome 'node.exe'
+  if (-not (Test-Path -LiteralPath $nodeExe)) {
+    Write-Step 'node.exe missing after extract' 'warn'
+    return $false
+  }
+
+  Add-UserPathEntry -Dir $nodeHome
+  $Script:PortableNodeHome = $nodeHome
+  Write-Step ("Portable Node installed to {0}" -f $nodeHome) 'ok'
+  return $true
+}
+
+function Invoke-ProcessWithTimeout {
+  param(
+    [string]$FilePath,
+    [string[]]$ArgumentList,
+    [int]$TimeoutSec = 300
+  )
+  Write-Step ("Running (timeout {0}s): {1} {2}" -f $TimeoutSec, $FilePath, ($ArgumentList -join ' '))
+  $stdout = Join-Path $env:TEMP ("dsh-onboard-stdout-{0}.log" -f [guid]::NewGuid().ToString('n'))
+  $stderr = Join-Path $env:TEMP ("dsh-onboard-stderr-{0}.log" -f [guid]::NewGuid().ToString('n'))
+  try {
+    $p = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -NoNewWindow -PassThru `
+      -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+    $finished = $p.WaitForExit($TimeoutSec * 1000)
+    if (-not $finished) {
+      try { $p.Kill() } catch {}
+      Write-Step ("Process timed out after {0}s and was killed" -f $TimeoutSec) 'warn'
+      return 124
+    }
+    return $p.ExitCode
+  } catch {
+    Write-Step ("Process failed: {0}" -f $_.Exception.Message) 'warn'
+    return 1
+  } finally {
+    foreach ($f in @($stdout, $stderr)) {
+      if (Test-Path -LiteralPath $f) {
+        Get-Content -LiteralPath $f -ErrorAction SilentlyContinue | Select-Object -Last 20 | ForEach-Object {
+          Write-Host ("       {0}" -f $_)
+        }
+        Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+      }
+    }
+  }
+}
+
 function Install-NodeWindows {
-  Write-Step 'Trying winget to install Node.js LTS...'
+  Write-Step 'Node.js not found. Installing automatically...' 'warn'
+  Write-Step 'Prefer portable zip (no UAC). winget is only a fallback and can hang on some PCs.' 'info'
+
+  # 1) Portable zip into %LOCALAPPDATA% — fastest and most reliable for one-click.
+  $Script:PortableNodeHome = $null
+  if (Install-NodePortableZip) {
+    if ($Script:PortableNodeHome) { Add-UserPathEntry -Dir $Script:PortableNodeHome }
+    Update-SessionPath
+    if ($Script:PortableNodeHome) { $env:Path = "{0};{1}" -f $Script:PortableNodeHome, $env:Path }
+    $ver = Get-NodeVersionObject
+    if ($null -ne $ver -and (Test-NodeVersion $ver)) { return $true }
+    Write-Step 'Portable Node extracted but node command still not visible in this session' 'warn'
+  }
+
+  # 2) winget with hard timeout (often hangs waiting for UI/UAC)
   $winget = Get-Command winget -ErrorAction SilentlyContinue
   if ($null -ne $winget) {
-    & winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
-    if ($LASTEXITCODE -eq 0) {
-      Update-SessionPath
-      return $true
+    Write-Step 'Trying winget (max 3 minutes, silent)...' 
+    $code = Invoke-ProcessWithTimeout -FilePath $winget.Source -TimeoutSec 180 -ArgumentList @(
+      'install', '-e', '--id', 'OpenJS.NodeJS.LTS',
+      '--accept-package-agreements', '--accept-source-agreements',
+      '--disable-interactivity', '--silent'
+    )
+    Update-SessionPath
+    $ver = Get-NodeVersionObject
+    if ($code -eq 0 -or ($null -ne $ver -and (Test-NodeVersion $ver))) {
+      if ($null -ne $ver -and (Test-NodeVersion $ver)) { return $true }
     }
-    Write-Step ("winget exit code: {0}" -f $LASTEXITCODE) 'warn'
+    Write-Step ("winget finished with code {0}" -f $code) 'warn'
   } else {
     Write-Step 'winget not found, skip' 'warn'
   }
 
-  Write-Step 'Trying Chocolatey to install Node.js...'
+  # 3) Chocolatey if present
   $choco = Get-Command choco -ErrorAction SilentlyContinue
   if ($null -ne $choco) {
-    & choco install nodejs-lts -y
-    if ($LASTEXITCODE -eq 0) {
-      Update-SessionPath
-      return $true
-    }
+    Write-Step 'Trying Chocolatey (max 5 minutes)...'
+    $code = Invoke-ProcessWithTimeout -FilePath $choco.Source -TimeoutSec 300 -ArgumentList @('install', 'nodejs-lts', '-y')
+    Update-SessionPath
+    $ver = Get-NodeVersionObject
+    if ($null -ne $ver -and (Test-NodeVersion $ver)) { return $true }
+    Write-Step ("choco finished with code {0}" -f $code) 'warn'
   }
+
+  Write-Step 'Automatic Node install failed.' 'err'
+  Write-Step 'Install Node.js 22.19+ or 24+ from https://nodejs.org/ then re-open the terminal and run the command again.' 'warn'
   return $false
 }
 
