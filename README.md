@@ -11,10 +11,12 @@
 
 **备用（GitHub Pages）**
 
-- 快速启动：https://dpsagent.github.io/dsh-onboarding/
-- 使用手册：https://dpsagent.github.io/dsh-onboarding/guide.html
+- 快速启动：https://agents-group.github.io/dsh-onboarding/
+- 使用手册：https://agents-group.github.io/dsh-onboarding/guide.html
 
-> 日常请优先把 Cloudflare 地址发给用户；GitHub Pages 仅作备用。推送到 `main` 后，Actions 会自动同步到 Cloudflare。
+> 日常请优先把 Cloudflare 地址发给用户；GitHub Pages 仅作备用。推送到 `main` 后，Actions 会自动同步到 Cloudflare。  
+> 代码仓库：https://github.com/agents-group/dsh-onboarding  
+> 组织共用 Secrets：https://github.com/organizations/agents-group/settings/secrets/actions
 
 用户打开快速启动页，复制一条命令即可：
 
@@ -24,7 +26,7 @@
 4. 执行 `npx -y @deepseek-ai/dsh web`
 
 CI：`.github/workflows/deploy-cloudflare-pages.yml`  
-Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`
+组织 Secrets（`agents-group` 下所有仓库可共用）：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`
 
 ## 目录
 
